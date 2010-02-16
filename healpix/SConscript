@@ -1,0 +1,13 @@
+Import('env')
+
+objs = env.SharedObject(['healpix_wrapper.f90'])
+objs += env.SharedObject(['comp_normalised_Plm.f90'])
+x = env.PythonObject(['lib.pyx'])
+Depends(x, 'lib.pxd')
+objs += x
+
+env.PythonExtension('lib', objs,
+                    LIBS=['healpix', 'cfitsio'],
+                    PYEXTLINKFLAGS=['-shared', '-openmp'],
+                    PYEXTLINK='$F90')
+
