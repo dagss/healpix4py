@@ -5,29 +5,40 @@ import distutils.sysconfig
 if not os.environ.has_key('HEALPIX'):
     raise ValueError("HEALPIX environment variable must be set")
 
-settings = Environment(HEALPIX=os.environ['HEALPIX'],
-                       CFITSIO='/mn/corcaroli/d1/dagss/cfitsio')
-#settings = Environment(HEALPIX='/home/dagss/local/Healpix_2.11c',
-#                       CFITSIO='/home/dagss/local/cfitsio')
+healpix_template_builder_dd = Builder(
+    action="sed -e 's/KLOAD/d/g' -e 's/KMAP/DP/g' "
+    "-e 's/KALMC/DPC/g'  -e 's/KALM/DP/g' $SOURCE > $TARGET")
+healpix_template_builder_ss = Builder(
+    action="sed -e 's/KLOAD/s/g' -e 's/KMAP/SP/g' "
+    "-e 's/KALMC/SPC/g'  -e 's/KALM/SP/g' $SOURCE > $TARGET")
 
-env = settings.Environment(
+ip = '%s/include' % os.environ['HEALPIX']
+if not os.path.isdir(ip):
+    ip = '%s/include_ifort' % os.environ['HEALPIX']
+    if not os.path.isdir(ip):
+        raise Exception()
+
+env = Environment(
     FORTRAN="ifort",
     F90="ifort",
+    F90PATH=[ip],
     FORTRANFLAGS=["-g", "-vec_report0"],
-    PYEXT_USE_DISTUTILS=True)
-
+    F90FLAGS=["-O3", '-openmp', '-parallel', '-cm', '-w', '-sox'],
+    PYEXT_USE_DISTUTILS=True,
+    BUILDERS=dict(HealpixTemplateDD=healpix_template_builder_dd,
+                  HealpixTemplateSS=healpix_template_builder_ss))
 
 env.Tool("pyext")
 env.Tool("cython")
 
-env.Append(LIBPATH=[settings.subst('$HEALPIX/lib'), settings.subst('$CFITSIO')],
-           F90PATH=[settings.subst('$HEALPIX/include')],
-           PYEXTINCPATH=[numpy.get_include()])
+env.Append(PYEXTINCPATH=[numpy.get_include()])
 env.Replace(PYEXTCFLAGS=['-fno-strict-aliasing', '-DNDEBUG', '-Wall',
                          '-fwrapv', '-g', '-Wstrict-prototypes'],#, '-DCYTHON_REFNANNY'],
-            CYTHON="python /uio/arkimedes/s07/dagss/cython/devel/cython.py",
+            #CYTHON="python /uio/arkimedes/s07/dagss/cython/stable/cython.py",
             CYTHONFLAGS=['-a'])
+
 env['ENV']['PATH'] = os.environ['PATH']
+env['ENV']['LIBRARY_PATH'] = env['ENV']['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH']
 
 Export('env')
 

@@ -112,3 +112,34 @@
     read(10) data
     close(10)
   end subroutine cywrap_read_unformatted_2d_complex_d
+
+  subroutine cywrap_read_unformatted_1d_real_d(data, n, filename, filename_len)
+    use healpix_types
+    real(dp), intent(out), dimension(1:n)   :: data
+    integer(i4b), intent(in) :: filename_len
+    character(len=filename_len),  intent(in)    :: filename
+    open(10, FILE=trim(filename), FORM='UNFORMATTED')
+    read(10) data
+    close(10)
+  end subroutine cywrap_read_unformatted_1d_real_d
+
+
+  subroutine cywrap_rotate_alm_d(lmax, alm, psi, theta, phi, alm_s0, alm_s1, alm_s2)
+    use healpix_types
+    use alm_tools
+    implicit none
+    integer(I4B),   intent(in) :: lmax, alm_s0, alm_s1, alm_s2
+    complex(DPC), intent(inout), dimension(1:alm_s0,0:alm_s1-1,0:alm_s2-1) :: alm
+    real(DP),       intent(in) :: psi, theta, phi
+    call rotate_alm(lmax, alm, psi, theta, phi)
+  end subroutine cywrap_rotate_alm_d
+
+  subroutine cywrap_rotate_alm_single_d(lmax, alm, psi, theta, phi, alm_s0, alm_s1, alm_s2)
+    use healpix_types
+    use rotate_alm
+    implicit none
+    integer(I4B),   intent(in) :: lmax, alm_s0, alm_s1, alm_s2
+    complex(DPC), intent(inout), dimension(1:alm_s0,0:alm_s1-1,0:alm_s2-1) :: alm
+    real(DP),       intent(in) :: psi, theta, phi
+    call rotate_alm_single(lmax, alm, psi, theta, phi)
+  end subroutine cywrap_rotate_alm_single_d

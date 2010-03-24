@@ -99,6 +99,16 @@ cdef extern:
     void cywrap_read_unformatted_2d_complex_d_(double* data, i4b* n, i4b* m,
                                                char* filename, i4b* filename_len)
                                                
+    void cywrap_read_unformatted_1d_real_d_(double* data, i4b* n, char* filename, i4b* filename_len)
+
+
+    void cywrap_rotate_alm_d_(i4b* lmax, double* alm, double* psi, double* theta, double* phi,
+                              i4b* alm_s0, i4b* alm_s1, i4b* alm_s2)
+
+    void cywrap_rotate_alm_single_d_(i4b* lmax, double* alm, double* psi,
+                                     double* theta, double* phi,
+                                     i4b* alm_s0, i4b* alm_s1, i4b* alm_s2)
+
 ##     void rand_init_ "__rngmod__rand_init"(plank_rng* handle,
 ##                                           i4b* seed1,
 ##                                           i4b* seed2,
@@ -408,3 +418,27 @@ def read_unformatted_2d_complex(np.ndarray[np.complex128_t, mode='fortran', ndim
     cdef char* filename_buf = filename_bytes
     cdef i4b n = data.shape[0], m=data.shape[1], flen = len(filename_bytes)
     cywrap_read_unformatted_2d_complex_d_(<double*>data.data, &n, &m, filename_buf, &flen)
+
+def read_unformatted_1d_real(np.ndarray[np.float64_t, mode='fortran', ndim=1] data, filename):
+    cdef bytes filename_bytes = filename.encode('ASCII')
+    cdef char* filename_buf = filename_bytes
+    cdef i4b n = data.shape[0], flen = len(filename_bytes)
+    cywrap_read_unformatted_1d_real_d_(<double*>data.data, &n, filename_buf, &flen)
+
+def rotate_alm_d(i4b lmax, np.ndarray[np.complex128_t, ndim=3, mode='fortran'] alm,
+                 double psi, double theta, double phi, single=None):
+    cdef i4b i, j, k
+    i, j, k = alm.shape[0], alm.shape[1], alm.shape[2]
+    if single is None:
+        single = False
+    if not single:
+        cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
+    else:
+        cywrap_rotate_alm_single_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
+        
+
+#cdef extern from *:
+#    void doit_()
+
+#def doit_yeah():
+#    
