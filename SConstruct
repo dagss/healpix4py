@@ -33,8 +33,7 @@ env.Tool("cython")
 
 env.Append(PYEXTINCPATH=[numpy.get_include()])
 env.Replace(PYEXTCFLAGS=['-fno-strict-aliasing', '-DNDEBUG', '-Wall',
-                         '-fwrapv', '-g', '-Wstrict-prototypes'],#, '-DCYTHON_REFNANNY'],
-            #CYTHON="python /uio/arkimedes/s07/dagss/cython/stable/cython.py",
+                         '-fwrapv', '-g', '-Wstrict-prototypes'],
             CYTHONFLAGS=['-a'])
 
 env['ENV']['PATH'] = os.environ['PATH']
