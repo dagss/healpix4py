@@ -30,6 +30,8 @@ env = Environment(
 
 env.Tool("pyext")
 env.Tool("cython")
+for x in ['PATH', 'INTEL_LICENSE_FILE', 'LIBRARY_PATH', 'LD_LIBRARY_PATH']:
+    env['ENV'][x] = os.environ[x]
 
 env.Append(PYEXTINCPATH=[numpy.get_include()])
 env.Replace(PYEXTCFLAGS=['-fno-strict-aliasing', '-DNDEBUG', '-Wall',
