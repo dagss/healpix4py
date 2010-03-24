@@ -5,12 +5,12 @@ import distutils.sysconfig
 if not os.environ.has_key('HEALPIX'):
     raise ValueError("HEALPIX environment variable must be set")
 
-healpix_template_builder_dd = Builder(
-    action="sed -e 's/KLOAD/d/g' -e 's/KMAP/DP/g' "
-    "-e 's/KALMC/DPC/g'  -e 's/KALM/DP/g' $SOURCE > $TARGET")
-healpix_template_builder_ss = Builder(
-    action="sed -e 's/KLOAD/s/g' -e 's/KMAP/SP/g' "
-    "-e 's/KALMC/SPC/g'  -e 's/KALM/SP/g' $SOURCE > $TARGET")
+## healpix_template_builder_dd = Builder(
+##     action="sed -e 's/KLOAD/d/g' -e 's/KMAP/DP/g' "
+##     "-e 's/KALMC/DPC/g'  -e 's/KALM/DP/g' $SOURCE > $TARGET")
+## healpix_template_builder_ss = Builder(
+##     action="sed -e 's/KLOAD/s/g' -e 's/KMAP/SP/g' "
+##     "-e 's/KALMC/SPC/g'  -e 's/KALM/SP/g' $SOURCE > $TARGET")
 
 ip = '%s/include' % os.environ['HEALPIX']
 if not os.path.isdir(ip):

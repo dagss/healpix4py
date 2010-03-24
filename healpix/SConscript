@@ -1,27 +1,10 @@
 Import('env')
 
-env.HealpixTemplateDD('rotate_alm_dd_inc.f90', 'rotate_alm_template.f90')
-env.HealpixTemplateSS('rotate_alm_ss_inc.f90', 'rotate_alm_template.f90')
-Depends('rotate_alm.f90', ['rotate_alm_ss_inc.f90', 'rotate_alm_dd_inc.f90',
-                           'rotate_alm_template.f90'])
-
-prog = env.SharedObject('testprog.f90')#, F90FLAGS='-nofor-main') 
-
 objs = env.SharedObject(['healpix_wrapper.f90'])
 objs += env.SharedObject(['comp_normalised_Plm.f90'])
 x = env.PythonObject(['lib.pyx'])
-Depends(x, ['lib.pxd', 'rotate_alm.f90'])
+Depends(x, ['lib.pxd'])
 objs += x
-
-#objs += prog
-
-#objs += env.SharedObject(['rotate_alm.f90'], F90FLAGS=["-O3", "-vec_report0",
-#                    '-cm', '-w', '-sox', '-openmp'])
-
-rotate_alm = env.SharedObject(['rotate_alm.f90'], )
-objs += rotate_alm
-
-#                    '-cm', '-w', '-sox', '-openmp'])
 
 env.PythonExtension('lib', objs,
                     LIBS=['healpix', 'cfitsio'],
@@ -31,13 +14,3 @@ env.PythonExtension('lib', objs,
 env.PythonExtension('openmp', ['openmp.pyx'],
                     PYEXTLINKFLAGS=['-shared', '-openmp'],
                     PYEXTLINK='$F90')
-
-mylib = env.SharedLibrary('rotate_alm', rotate_alm)
-
-#env.Program('testprogmain', prog + ['testprogmain.c'] + mylib,
-#            LIBS=['healpix', 'cfitsio'],
- #           LINKFLAGS=['-openmp', '-nofor-main'])
-
-
-
-#env.PythonExtension('bench', ['bench.pyx'])

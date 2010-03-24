@@ -105,19 +105,6 @@ cdef extern:
     void cywrap_rotate_alm_d_(i4b* lmax, double* alm, double* psi, double* theta, double* phi,
                               i4b* alm_s0, i4b* alm_s1, i4b* alm_s2)
 
-    void cywrap_rotate_alm_single_d_(i4b* lmax, double* alm, double* psi,
-                                     double* theta, double* phi,
-                                     i4b* alm_s0, i4b* alm_s1, i4b* alm_s2)
-
-##     void rand_init_ "__rngmod__rand_init"(plank_rng* handle,
-##                                           i4b* seed1,
-##                                           i4b* seed2,
-##                                           i4b* seed3,
-##                                           i4b* seed4)
-##     double rand_uni_ "__rngmod__rand_uni"(planck_rng* handle)
-##     double rand_gauss_ "__rngmod__rand_gauss"(planck_rng* handle)
-                                          
-
     
     
 cpdef np.int32_t nside2npix(np.int32_t nside):
@@ -434,7 +421,7 @@ def rotate_alm_d(i4b lmax, np.ndarray[np.complex128_t, ndim=3, mode='fortran'] a
     if not single:
         cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
     else:
-        cywrap_rotate_alm_single_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
+        cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
         
 
 #cdef extern from *:
