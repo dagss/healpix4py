@@ -56,20 +56,22 @@ class HealpixData(object):
                 hdulist.close()
         return result
 
-    def pixel_window(self, Nside):
+    def pixel_window(self, Nside, dtype=np.double):
         """
         >>> res = get_default()
-        >>> x = res.pixel_window(Nside=8)
-        >>> x.shape
-        (2, 33)
-        >>> np.round(x[0,0], 4)
+        >>> t, p = res.pixel_window(Nside=8)
+        >>> t.shape, p.shape
+        ((33,), (33,))
+        >>> t.dtype
+        dtype('float64')
+        >>> np.round(t[0], 4)
         1.0
-        >>> y = res.pixel_window(Nside=8)
-        >>> x is y
-        True
+        >>> t2, p2 = res.pixel_window(Nside=8)
+        >>> t is t2, p is p2
+        (True, True)
 
-        >>> res.pixel_window(Nside=512).shape
-        (2, 2049)
+        >>> res.pixel_window(Nside=512)[0].shape
+        (2049,)
 
         """
         result = self.pixel_window_cache.get(Nside)
@@ -77,17 +79,10 @@ class HealpixData(object):
             hdulist = pyfits.open(os.path.join(self.data_path,
                                                'pixel_window_n%04d.fits' % Nside))
             try:
-#                print hdulist[1].header.ascardlist()
-#                return
-                # Get data to plain 2D float array
-                data = hdulist[1].data.view(np.ndarray)
-                temp = data['TEMPERATURE'].ravel()
-                pol = data['POLARIZATION'].ravel()
-                # Convert to native endian...
-                data = np.asarray([temp, pol], np.double, order='C')
-                # Add 1
-#                data += 1
-                result = data
+                # Important to use astype, in order to convert to native endia
+                data = hdulist[1].data
+                result = (data.field('TEMPERATURE').astype(dtype),
+                          data.field('POLARIZATION').astype(dtype))
                 self.pixel_window_cache[Nside] = result
             finally:
                 hdulist.close()

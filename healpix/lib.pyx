@@ -51,7 +51,7 @@ cdef extern:
         i4b* nlmax,
         i4b* nmmax,
         complex_double* alm,
-        double* map)
+        double* map) nogil
     
     void map2alm_sc_d_ "alm_tools_mp_map2alm_sc_d_"(
         i4b* nsmax,
@@ -60,7 +60,7 @@ cdef extern:
         double* map,
         complex_double* alm,
         double* zbound,
-        double* w8ring)
+        double* w8ring) nogil
 
     void cywrap_output_map_d_(
         double* map,
@@ -103,7 +103,7 @@ cdef extern:
 
 
     void cywrap_rotate_alm_d_(i4b* lmax, double* alm, double* psi, double* theta, double* phi,
-                              i4b* alm_s0, i4b* alm_s1, i4b* alm_s2)
+                              i4b* alm_s0, i4b* alm_s1, i4b* alm_s2) nogil
 
     
     
@@ -129,11 +129,12 @@ cpdef int alm2map_sc_d(np.int32_t nsmax,
         alm_work = alm.copy('F')
     if must_copy(map):
         map_work = map.copy('F')
-    alm2map_sc_d_(&nsmax,
-                  &nlmax,
-                  &nmmax,
-                  <complex_double*>alm_work.data,
-                  <double*>map_work.data)
+    with nogil:
+        alm2map_sc_d_(&nsmax,
+                      &nlmax,
+                      &nmmax,
+                      <complex_double*>alm_work.data,
+                      <double*>map_work.data)
     if map_work is not map:
         map[...] = map_work
     return 0
@@ -160,14 +161,15 @@ cpdef int map2alm_sc_d(np.int32_t nsmax,
     if must_copy(weight_ring):
         weight_ring_work = weight_ring.copy('F')
     cdef np.ndarray zbounds = np.array([-1, 1], real_dtype)
-    map2alm_sc_d_(&nsmax,
-                  &nlmax,
-                  &nmmax,
-                  <double*>map_work.data,
-                  <complex_double*>alm_work.data,
-#                  NULL, NULL)
-                  <double*>zbounds.data,
-                  <double*>weight_ring_work.data)
+    with nogil:
+        map2alm_sc_d_(&nsmax,
+                      &nlmax,
+                      &nmmax,
+                      <double*>map_work.data,
+                      <complex_double*>alm_work.data,
+                      #                  NULL, NULL)
+                      <double*>zbounds.data,
+                      <double*>weight_ring_work.data)
     if alm_work is not alm:
         alm[...] = alm_work
     return 0
@@ -413,16 +415,13 @@ def read_unformatted_1d_real(np.ndarray[np.float64_t, mode='fortran', ndim=1] da
     cywrap_read_unformatted_1d_real_d_(<double*>data.data, &n, filename_buf, &flen)
 
 def rotate_alm_d(i4b lmax, np.ndarray[np.complex128_t, ndim=3, mode='fortran'] alm,
-                 double psi, double theta, double phi, single=None):
+                 double psi, double theta, double phi):
     cdef i4b i, j, k
     i, j, k = alm.shape[0], alm.shape[1], alm.shape[2]
     if single is None:
         single = False
-    if not single:
+    with nogil:
         cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
-    else:
-        cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
-        
 
 #cdef extern from *:
 #    void doit_()
