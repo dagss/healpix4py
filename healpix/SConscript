@@ -1,16 +1,30 @@
+from pprint import pprint
 Import('env')
 
-objs = env.SharedObject(['healpix_wrapper.f90'])
-objs += env.SharedObject(['comp_normalised_Plm.f90'])
-x = env.PythonObject(['lib.pyx'])
+env.PythonExtension('openmp', ['openmp.pyx'],
+                    PYEXTLINKFLAGS=['-fopenmp'])
+
+healpix_env = env.Clone()
+
+healpix_env.Append(
+    F90PATH=["$HEALPIX_INCLUDE"],
+    PYEXTLINKFLAGS=['-shared', '-openmp'],
+    LIBS=['healpix'])
+
+if isinstance(env['HEALPIX_LIB'], str):
+    healpix_env.Append(PYEXTLINKFLAGS=['-L${HEALPIX_LIB}'])
+
+if env['CFITSIO_LIB'] is not None:
+    healpix_env.Append(LIBS=['cfitsio'])
+    if isinstance(env['CFITSIO_LIB'], str):
+        healpix_env.Append(PYEXTLINKFLAGS=['-L${CFITSIO_LIB}'])
+
+objs = healpix_env.SharedObject(['healpix_wrapper.f90', 'comp_normalised_Plm.f90'])
+x = healpix_env.PythonObject(['lib.pyx'])
 Depends(x, ['lib.pxd'])
 objs += x
 
-env.PythonExtension('lib', objs,
-                    LIBS=['healpix', 'cfitsio'],
-                    PYEXTLINKFLAGS=['-shared', '-openmp'],
-                    PYEXTLINK='$F90')
 
-env.PythonExtension('openmp', ['openmp.pyx'],
-                    PYEXTLINKFLAGS=['-shared', '-openmp'],
-                    PYEXTLINK='$F90')
+healpix_env.PythonExtension('lib', objs,
+                            PYEXTLINK='$F90')
+

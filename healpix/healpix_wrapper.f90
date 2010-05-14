@@ -133,3 +133,16 @@
     real(DP),       intent(in) :: psi, theta, phi
     call rotate_alm(lmax, alm, psi, theta, phi)
   end subroutine cywrap_rotate_alm_d
+
+  subroutine cywrap_remove_dipole_double(nside, map, ordering, degree, multipoles, mask)
+    use healpix_types
+    use pix_tools
+
+    integer(kind=i4b),                  intent(in)    :: nside
+    integer(kind=i4b),                  intent(in)    :: ordering, degree
+    real   (kind=DP),   dimension(0:degree*degree-1),  intent(out)   :: multipoles
+    real   (kind=DP),   dimension(0:12*nside*nside-1),  intent(inout) :: map
+    real   (kind=DP),   dimension(0:12*nside*nside-1),  intent(in) :: mask
+    call remove_dipole(nside, map, ordering, degree, multipoles, (/ -1.0_DP, 1.0_DP /), &
+ & mask=mask)
+  end subroutine

@@ -1,0 +1,14 @@
+import os
+
+# Path to Healpix include and lib dirs
+HEALPIX = os.environ['HEALPIX'] #'/mn/corcaroli/d1/dagss/Healpix_2.14a'
+HEALPIX_INCLUDE = os.path.join(HEALPIX, 'include')
+HEALPIX_LIB = os.path.join(HEALPIX, 'lib')
+
+F90 = 'ifort'
+F90FLAGS = ['-O0', '-openmp', '-parallel', '-cm', '-w', '-sox']
+
+#
+#LINK_CFITSIO = False
+CFITSIO_LIB = True
+#'/mn/corcaroli/d1/dagss/cfitsio'

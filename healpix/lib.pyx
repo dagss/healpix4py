@@ -1,3 +1,12 @@
+from __future__ import division
+##############################################################################
+#    Copyright (C) 2010 Dag Sverre Seljebotn <dagss@student.matnat.uio.no>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  either version 2 of the License, or (at your option) any later version.
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
 cimport numpy as np
 import numpy as np
 
@@ -105,7 +114,9 @@ cdef extern:
     void cywrap_rotate_alm_d_(i4b* lmax, double* alm, double* psi, double* theta, double* phi,
                               i4b* alm_s0, i4b* alm_s1, i4b* alm_s2) nogil
 
-    
+    void cywrap_remove_dipole_double_(i4b* nside, double* map, i4b* ordering,
+                                      i4b* degree, double* multipoles,
+                                      double* mask)
     
 cpdef np.int32_t nside2npix(np.int32_t nside):
     return nside2npix_(&nside)
@@ -334,15 +345,33 @@ def pix2vec_ring(nside, ipix):
     assert not np.PyArray_MultiIter_NOTDONE(input_it)
     return out
 
-def vec2pix_ring(i4b nside, double x, double y, double z):
+def vec2pix_ring(i4b nside, np.ndarray[double, ndim=2] vecs):
     """
-    >>> vec2pix_ring(4, 0, 0, 1)
-    
+    >>> vec2pix_ring(16, (-0.19915651, -0.03961469,  0.97916667))
+    32
     """
-    cdef double* vec = [x, y, z]
+    cdef Py_ssize_t i
     cdef i4b ipix
-    cywrap_vec2pix_ring_(&nside, vec, &ipix)
-    return ipix
+    cdef np.ndarray[i4b] out = np.zeros(vecs.shape[0], np.int32)
+    cdef double* vec = [0, 0, 0]
+
+    for i in range(vecs.shape[0]):
+        vec[0] = vecs[i, 0]
+        vec[1] = vecs[i, 1]
+        vec[2] = vecs[i, 2]
+        cywrap_vec2pix_ring_(&nside, vec, &ipix)
+        out[i] = ipix
+    return out
+
+## def vec2pix_ring(i4b nside, double x, double y, double z):
+##     """
+##     >>> vec2pix_ring(4, 0, 0, 1)
+    
+##     """
+##     cdef double* vec = [x, y, z]
+##     cdef i4b ipix
+##     cywrap_vec2pix_ring_(&nside, vec, &ipix)
+##     return ipix
 
 
 def convert_ring2nest(i4b nside, np.ndarray[double, ndim=2, mode='fortran'] map):
@@ -422,6 +451,33 @@ def rotate_alm_d(i4b lmax, np.ndarray[np.complex128_t, ndim=3, mode='fortran'] a
         single = False
     with nogil:
         cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
+
+def remove_dipole_double(i4b nside,
+                         np.ndarray[np.double_t, ndim=1, mode='fortran'] map,
+                         ordering,
+                         i4b degree,
+                         np.ndarray[np.double_t, ndim=1, mode='fortran'] mask):
+    cdef double* multipoles = [0, 0, 0, 0]
+    cdef i4b npix = nside2npix(nside)
+    cdef i4b orderingint
+    if map.shape[0] != npix or mask.shape[0] != npix:
+        raise ValueError("Arrays do not match nside")
+    if ordering == 'ring':
+        orderingint = 1
+    elif ordering == 'nested':
+        orderingint = 2
+    else:
+        raise ValueError("ordering must be ring or nested")
+    if degree < 0 or degree > 2:
+        raise ValueError("illegal degree")
+    cywrap_remove_dipole_double_(&nside, <double*>map.data, &orderingint,
+                                 &degree, multipoles, <double*>mask.data)
+    if degree == 0:
+        return ()
+    elif degree == 1:
+        return (multipoles[0],)
+    elif degree == 2:
+        return (multipoles[0], multipoles[1], multipoles[2], multipoles[3])
 
 #cdef extern from *:
 #    void doit_()
