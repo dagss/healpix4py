@@ -46,8 +46,8 @@ ctypedef struct planck_rng:
     i4b empty
 
 cdef extern:
-    np.int32_t nside2npix_ "pix_tools_mp_nside2npix_"(np.int32_t*)
-    np.int32_t npix2nside_ "pix_tools_mp_npix2nside_"(np.int32_t*)
+    np.int32_t cywrap_nside2npix_(np.int32_t*)
+    np.int32_t cywrap_npix2nside_(np.int32_t*)
 
     void cywrap_vec2ang_(double* vector, double* theta, double* phi)
 
@@ -55,14 +55,14 @@ cdef extern:
     void cywrap_pix2vec_ring_(i4b* nside, i4b* ipix, double* vector)
     void cywrap_vec2pix_ring_(i4b* nside, double* vector, i4b* ipix)
     
-    void alm2map_sc_d_ "alm_tools_mp_alm2map_sc_d_"(
+    void cywrap_alm2map_sc_d_(
         i4b* nsmax,
         i4b* nlmax,
         i4b* nmmax,
         complex_double* alm,
         double* map) nogil
     
-    void map2alm_sc_d_ "alm_tools_mp_map2alm_sc_d_"(
+    void cywrap_map2alm_sc_d_(
         i4b* nsmax,
         i4b* nlmax,
         i4b* nmmax,
@@ -86,22 +86,6 @@ cdef extern:
         double* map,
         i4b* nd)
 
-    void cywrap_alms2fits_(
-        char* filename,
-        i4b* nalms,
-        double* alms,
-        i4b* ncl,
-        i4b* next,
-        i4b* shapes)
-
-    void cywrap_fits2alms_(
-        char* filename,
-        i4b* nalms,
-        double* alms,
-        i4b* ncl,
-        i4b* next,
-        i4b* shapes)
-
     void cywrap_sub_udgrade_nest_d_(double* map_in, i4b* nside_in, double* map_out, i4b* nside_out)
 
 
@@ -119,10 +103,10 @@ cdef extern:
                                       double* mask)
     
 cpdef np.int32_t nside2npix(np.int32_t nside):
-    return nside2npix_(&nside)
+    return cywrap_nside2npix_(&nside)
 
 cpdef np.int32_t npix2nside(np.int32_t npix):
-    return npix2nside_(&npix)
+    return cywrap_npix2nside_(&npix)
 
 cpdef int alm2map_sc_d(np.int32_t nsmax,
                        np.int32_t nlmax,
@@ -141,7 +125,7 @@ cpdef int alm2map_sc_d(np.int32_t nsmax,
     if must_copy(map):
         map_work = map.copy('F')
     with nogil:
-        alm2map_sc_d_(&nsmax,
+        cywrap_alm2map_sc_d_(&nsmax,
                       &nlmax,
                       &nmmax,
                       <complex_double*>alm_work.data,
@@ -173,7 +157,7 @@ cpdef int map2alm_sc_d(np.int32_t nsmax,
         weight_ring_work = weight_ring.copy('F')
     cdef np.ndarray zbounds = np.array([-1, 1], real_dtype)
     with nogil:
-        map2alm_sc_d_(&nsmax,
+        cywrap_map2alm_sc_d_(&nsmax,
                       &nlmax,
                       &nmmax,
                       <double*>map_work.data,
@@ -214,50 +198,6 @@ cpdef int convert_ring2nest_d(i4b nside, map_, i4b nd=-1) except -1:
                                 &nd)
     if map_work is not map_:
         map_[...] = map_work
-    
-    return 0
-
-cpdef int alms2fits(bytes filename, alms) except -1:
-    cdef i4b nalms, ncl, next
-    cdef i4b* shapes = [len(filename)]
-
-    nalms, ncl, next = alms.shape
-    ncl -= 1
-    cdef np.ndarray alms_work
-    if must_copy(alms):
-        alms_work = alms.copy('F')
-        
-    print ncl
-    cywrap_alms2fits_(<char*>filename,
-                      &nalms,
-                      <double*>alms_work.data,
-                      &ncl,
-                      &next,
-                      shapes)                      
-    return 0
-
-cpdef int fits2alms(bytes filename, alms) except -1:
-    cdef i4b nalms, ncl, next
-    cdef i4b* shapes = [len(filename)]
-    cdef np.ndarray alms_work
-
-    nalms, ncl, next = alms.shape
-    ncl -= 1
-
-    if must_copy(alms):
-        alms_work = alms.copy('F')
-    else:
-        alms_work = alms
-
-    cywrap_fits2alms_(<char*>filename,
-                      &nalms,
-                      <double*>alms_work.data,
-                      &ncl,
-                      &next,
-                      shapes)
-
-    if alms_work is not alms:
-        alms[...] = alms_work
     
     return 0
 

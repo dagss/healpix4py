@@ -5,10 +5,30 @@ HEALPIX = os.environ['HEALPIX'] #'/mn/corcaroli/d1/dagss/Healpix_2.14a'
 HEALPIX_INCLUDE = os.path.join(HEALPIX, 'include')
 HEALPIX_LIB = os.path.join(HEALPIX, 'lib')
 
-F90 = 'ifort'
-F90FLAGS = ['-O0', '-openmp', '-parallel', '-cm', '-w', '-sox']
+# Path to cfitsio
+CFITSIO_LIB = '/mn/corcaroli/d1/dagss/cfitsio'
 
 #
-#LINK_CFITSIO = False
-CFITSIO_LIB = True
-#'/mn/corcaroli/d1/dagss/cfitsio'
+# ifort settings
+#
+F90 = 'ifort'
+F90FLAGS = ['-O0', '-cm', '-w', '-sox', '-g']
+F90OPENMP_FLAG = '-openmp'
+
+#
+# gfortran settings
+#
+## F90 = 'gfortran'
+## F90FLAGS = ['-O0', '-g']
+## F90OPENMP_FLAG = '-fopenmp'
+
+#
+# Linker settings
+#
+
+# Linux:
+F90PYEXTLINK = '$F90 -shared -pthread'
+# Mac OS X:
+## F90PYEXTLINK = '$F90 -bundle -undefined dynamic_lookup'
+
+

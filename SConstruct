@@ -4,10 +4,12 @@ import distutils.sysconfig
 from pprint import pprint
 
 v = Variables('config')
+v.Add('F90OPENMP_FLAG')
 v.Add('HEALPIX_INCLUDE')
 v.Add('HEALPIX_LIB')
 v.Add('F90')
 v.Add('F90FLAGS')
+v.Add('F90PYEXTLINK')
 v.Add('CFITSIO_LIB')
 v.Add('PYEXTCFLAGS')
 

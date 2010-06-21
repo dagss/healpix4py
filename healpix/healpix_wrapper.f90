@@ -1,3 +1,47 @@
+
+  function cywrap_nside2npix(nside)
+    use healpix_types
+    use pix_tools
+
+    integer :: nside, cywrap_nside2npix
+
+    cywrap_nside2npix = nside2npix(nside)
+  end function cywrap_nside2npix
+
+  function cywrap_npix2nside(npix)
+    use healpix_types
+    use pix_tools
+
+    integer :: npix, cywrap_nside2npix
+
+    cywrap_npix2nside = npix2nside(npix)
+  end function cywrap_npix2nside
+
+  subroutine cywrap_alm2map_sc_d(nsmax, nlmax, nmmax, alm, map)
+    use healpix_types
+    use alm_tools
+
+    integer(I4B), intent(IN)                   :: nsmax, nlmax, nmmax
+    complex(DPC), intent(IN),  dimension(1:1,0:nlmax,0:nmmax) :: alm
+    real(DP),   intent(OUT), dimension(0:(12_i8b*nsmax)*nsmax-1) :: map
+
+    call alm2map(nsmax, nlmax, nmmax, alm, map)
+  end subroutine
+
+  subroutine cywrap_map2alm_sc_d(nsmax, nlmax, nmmax, map, alm, zbounds, w8ring)
+    use healpix_types
+    use alm_tools
+    implicit none
+
+    integer(I4B), intent(IN)                    :: nsmax, nlmax, nmmax
+    real(DP),   intent(IN),  dimension(0:(12_i8b*nsmax)*nsmax-1) :: map
+    complex(DPC), intent(OUT), dimension(1:1,0:nlmax,0:nmmax) :: alm
+    real(DP),     intent(IN),  dimension(1:2) :: zbounds
+    real(DP),     intent(IN),  dimension(1:2*nsmax,1) :: w8ring
+
+    call map2alm(nsmax, nlmax, nmmax, map, alm, zbounds, w8ring)
+  end subroutine cywrap_map2alm_sc_d
+
   subroutine cywrap_output_map_d(map, outfile, shapes)
     use healpix_types
     use fitstools, only: output_map
@@ -27,34 +71,6 @@
     real(dp), intent(inout), dimension(0:12*nside**2-1, 1:nd) :: map
     call convert_nest2ring(nside, map)
   end subroutine cywrap_convert_nest2ring_d
-
-  subroutine cywrap_alms2fits(filename, nalms, alms, ncl, next, shapes)
-    use healpix_types
-    use fitstools
-    integer(i4b), intent(in), dimension(1:1) :: shapes
-    character(len=shapes(1)),  intent(in)    :: filename
-    integer(I4B),      intent(in)            :: nalms, next, ncl
-    real(DP),          intent(in), dimension(1:nalms,1:ncl+1,1:next), target :: alms
-
-    character(len=80), dimension(1:1,1:next) :: header
-
-    header(:,:) = ''
-
-    call alms2fits(filename, nalms, alms, ncl, header, 1, next)
-  end subroutine cywrap_alms2fits
-
-  subroutine cywrap_fits2alms(filename, nalms, alms, ncl, next, shapes)
-    use healpix_types
-    use fitstools
-    integer(i4b), intent(in), dimension(1:1) :: shapes
-    character(len=shapes(1)),  intent(in)    :: filename
-    integer(I4B),      intent(in)            :: nalms, next, ncl
-    real(DP),          intent(inout), dimension(1:nalms,1:ncl+1,1:next), target :: alms
-
-    character(len=80), dimension(1:10,1:next) :: header
-
-    call fits2alms(filename, nalms, alms, ncl, header, 10, next)
-  end subroutine cywrap_fits2alms
 
   subroutine cywrap_pix2vec_nest(nside, ipix, vector)
     use healpix_types
