@@ -11,16 +11,16 @@ CFITSIO_LIB = '/mn/corcaroli/d1/dagss/cfitsio'
 #
 # ifort settings
 #
-F90 = 'ifort'
-F90FLAGS = ['-O0', '-cm', '-w', '-sox', '-g']
-F90OPENMP_FLAG = '-openmp'
+#F90 = 'ifort'
+#F90FLAGS = ['-O0', '-cm', '-w', '-sox', '-g']
+#F90OPENMP_FLAG = '-openmp'
 
 #
 # gfortran settings
 #
-## F90 = 'gfortran'
-## F90FLAGS = ['-O0', '-g']
-## F90OPENMP_FLAG = '-fopenmp'
+F90 = 'gfortran'
+F90FLAGS = ['-O0', '-g', '-fno-second-underscore']
+F90OPENMP_FLAG = '-fopenmp'
 
 #
 # Linker settings
