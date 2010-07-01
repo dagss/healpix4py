@@ -46,8 +46,8 @@ ctypedef struct planck_rng:
     i4b empty
 
 cdef extern:
-    np.int32_t cywrap_nside2npix_(np.int32_t*)
-    np.int32_t cywrap_npix2nside_(np.int32_t*)
+    void cywrap_nside2npix_(np.int32_t*, np.int32_t*)
+    void cywrap_npix2nside_(np.int32_t*, np.int32_t*)
 
     void cywrap_vec2ang_(double* vector, double* theta, double* phi)
 
@@ -103,10 +103,14 @@ cdef extern:
                                       double* mask)
     
 cpdef np.int32_t nside2npix(np.int32_t nside):
-    return cywrap_nside2npix_(&nside)
+    cdef np.int32_t out
+    cywrap_nside2npix_(&nside, &out)
+    return out
 
 cpdef np.int32_t npix2nside(np.int32_t npix):
-    return cywrap_npix2nside_(&npix)
+    cdef np.int32_t out
+    cywrap_npix2nside_(&npix, &out)
+    return out
 
 cpdef int alm2map_sc_d(np.int32_t nsmax,
                        np.int32_t nlmax,

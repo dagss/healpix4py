@@ -1,32 +1,39 @@
 
-  function cywrap_nside2npix(nside)
+  ! Eventually, this should use fwrap or at least ISO_C_BINDING,
+  ! but until I manage to get gfortran 4.3 built locally, this is
+  ! what we're stuck with
+
+  subroutine cywrap_nside2npix(nside, out)
     use healpix_types
     use pix_tools
+    implicit none
 
-    integer :: nside, cywrap_nside2npix
+    integer :: nside, out
 
-    cywrap_nside2npix = nside2npix(nside)
-  end function cywrap_nside2npix
+    out = nside2npix(nside)
+  end subroutine cywrap_nside2npix
 
-  function cywrap_npix2nside(npix)
+  subroutine cywrap_npix2nside(npix, out)
     use healpix_types
     use pix_tools
+    implicit none
 
-    integer :: npix, cywrap_nside2npix
+    integer :: npix, out
 
-    cywrap_npix2nside = npix2nside(npix)
-  end function cywrap_npix2nside
+    out = npix2nside(npix)
+  end subroutine cywrap_npix2nside
 
   subroutine cywrap_alm2map_sc_d(nsmax, nlmax, nmmax, alm, map)
     use healpix_types
     use alm_tools
+    implicit none
 
     integer(I4B), intent(IN)                   :: nsmax, nlmax, nmmax
     complex(DPC), intent(IN),  dimension(1:1,0:nlmax,0:nmmax) :: alm
     real(DP),   intent(OUT), dimension(0:(12_i8b*nsmax)*nsmax-1) :: map
 
     call alm2map(nsmax, nlmax, nmmax, alm, map)
-  end subroutine
+  end subroutine cywrap_alm2map_sc_d
 
   subroutine cywrap_map2alm_sc_d(nsmax, nlmax, nmmax, map, alm, zbounds, w8ring)
     use healpix_types
