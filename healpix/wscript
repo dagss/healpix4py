@@ -1,0 +1,7 @@
+def build(ctx):
+    ctx(target='lib',
+        source='lib.pyx healpix_wrapper.f90 comp_normalised_Plm.f90',
+        features='c fc pyext cshlib',
+        use='fcshlib CLIB NUMPY HEALPIX CFITSIO')
+
+# vim:ft=python

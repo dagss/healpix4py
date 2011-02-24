@@ -1,11 +1,12 @@
 *.html
 *~
 *#
-*.os
 *.so
 *.c
 *.pyc
-*.log
 *.#*
 .sconsign.dblite
-
+/.waf-*
+/.lock-wafbuild
+/build
+/config
