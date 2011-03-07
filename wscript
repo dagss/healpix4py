@@ -46,13 +46,13 @@ def configure(ctx):
         setattr(ctx.env, 'INCLUDES_%s' % LIB, includepath)
         setattr(ctx.env, 'LIB_%s' % LIB, getattr(ctx.options, '%s_lib' % lib))
 
-    ctx.env.LINKFLAGS_HEALPIX = '-fopenmp'
-
     ctx.add_os_flags('INCLUDES')
     ctx.add_os_flags('LIB')
     ctx.add_os_flags('LIBPATH')
     ctx.add_os_flags('STLIB')
     ctx.add_os_flags('STLIBPATH')
+
+    ctx.check_healpix()
 
 def build(ctx):
     ctx.recurse('healpix')
@@ -113,6 +113,40 @@ def check_cython_version(conf, minver):
         conf.end_msg(False)
         conf.fatal("cython version %s < %s" % (cy_ver, minver))
     conf.end_msg(str(cy_ver))
+
+@conf
+def check_healpix(conf):
+    from waflib.Errors import BuildError
+    
+    FRAG = '''\
+program test
+  use pix_tools
+  use healpix_types
+  real(dp) :: x
+  if (nside2npix(32) .ne. 12288) then
+    write (*,*) "ERROR"
+    stop
+  endif
+end program
+'''
+    conf.start_msg('Checking for HEALPix')
+    for flags in ['', '-fopenmp', '-liomp5']:
+        conf.env.LINKFLAGS_HEALPIX = flags
+        try:
+            kw = dict(uselib='HEALPIX',
+                      fragment=FRAG,
+                      compile_filename = 'test.f90',
+                      features         = 'fc fcprogram')
+            conf.validate_c(kw)
+            conf.run_c_code(**kw)
+        except conf.errors.ConfigurationError:
+            pass
+        else:
+            conf.end_msg('ok')
+            return
+    conf.fatal('not found, wrong FC, or wrong link flags')
+
+    
 
 import os
 from waflib import Logs, Build, Utils
