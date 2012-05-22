@@ -53,8 +53,9 @@ cdef extern:
 
     void cywrap_pix2vec_nest_(i4b* nside, i4b* ipix, double* vector)
     void cywrap_pix2vec_ring_(i4b* nside, i4b* ipix, double* vector)
-    void cywrap_vec2pix_ring_(i4b* nside, double* vector, i4b* ipix)
-    
+    void cywrap_vec2pix_ring_(i4b* nside, double* vector, i4b* ipix)    
+    void cywrap_pix2ang_ring_(i4b* nside, i4b* ipix, double *theta, double *phi)
+
     void cywrap_alm2map_sc_d_(
         i4b* nsmax,
         i4b* nlmax,
@@ -273,7 +274,6 @@ def pix2vec_ring(nside, ipix):
     cdef i4b nside_val, ipix_val
     cdef double* vector
     cdef np.flatiter out_it = np.PyArray_IterAllButAxis(out, &vecaxis)
-    import sys
     assert out.strides[vecaxis] == sizeof(double)
     while np.PyArray_ITER_NOTDONE(out_it):
         nside_val = (<i4b*>np.PyArray_MultiIter_DATA(input_it, 0))[0]
@@ -283,6 +283,32 @@ def pix2vec_ring(nside, ipix):
         vector = <double*>np.PyArray_ITER_DATA(out_it)
         
         cywrap_pix2vec_ring_(&nside_val, &ipix_val, vector)
+
+        np.PyArray_ITER_NEXT(out_it)
+        np.PyArray_MultiIter_NEXT(input_it)
+    assert not np.PyArray_MultiIter_NOTDONE(input_it)
+    return out
+
+def pix2ang_ring(nside, ipix):
+    nside = np.asarray(nside, np.int32)
+    ipix = np.asarray(ipix, np.int32)
+    cdef np.broadcast input_it = np.broadcast(nside, ipix)
+    out_shape = (<object>input_it).shape + (2,)
+    out = np.empty(out_shape, dtype=np.double)
+    cdef int vecaxis = len(out_shape) - 1
+    cdef i4b nside_val, ipix_val
+    cdef double* vector
+    cdef np.flatiter out_it = np.PyArray_IterAllButAxis(out, &vecaxis)
+    assert out.strides[vecaxis] == sizeof(double)
+    while np.PyArray_ITER_NOTDONE(out_it):
+        nside_val = (<i4b*>np.PyArray_MultiIter_DATA(input_it, 0))[0]
+        ipix_val = (<i4b*>np.PyArray_MultiIter_DATA(input_it, 1))[0]
+        if ipix_val >= nside2npix(nside_val):
+            raise ValueError("ipix too large")
+        theta_phi = <double*>np.PyArray_ITER_DATA(out_it)
+        
+        cywrap_pix2ang_ring_(&nside_val, &ipix_val, &theta_phi[0],
+                             &theta_phi[1])
 
         np.PyArray_ITER_NEXT(out_it)
         np.PyArray_MultiIter_NEXT(input_it)
@@ -391,8 +417,6 @@ def rotate_alm_d(i4b lmax, np.ndarray[np.complex128_t, ndim=3, mode='fortran'] a
                  double psi, double theta, double phi):
     cdef i4b i, j, k
     i, j, k = alm.shape[0], alm.shape[1], alm.shape[2]
-    if single is None:
-        single = False
     with nogil:
         cywrap_rotate_alm_d_(&lmax, <double*>alm.data, &psi, &theta, &phi, &i, &j, &k)
 

@@ -115,6 +115,15 @@
     call vec2pix_ring(nside, vector, ipix)
   end subroutine cywrap_vec2pix_ring
 
+  subroutine cywrap_pix2ang_ring(nside, ipix, theta, phi)
+    use healpix_types
+    use pix_tools
+    INTEGER(KIND=I4B), INTENT(IN)  :: nside
+    INTEGER(KIND=I4B), INTENT(IN)  :: ipix
+    REAL(KIND=DP),     INTENT(OUT) :: theta, phi
+    call pix2ang_ring(nside, ipix, theta, phi)
+  end subroutine cywrap_pix2ang_ring
+
   subroutine cywrap_sub_udgrade_nest_d(map_in, nside_in, map_out, nside_out)
     use healpix_types
     use udgrade_nr
