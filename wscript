@@ -15,6 +15,7 @@ def options(ctx):
     ctx.load('compiler_c')
     ctx.load('compiler_fc')
     ctx.load('python')
+    ctx.load('inplace', tooldir='tools')
 
 def configure(ctx):
     ctx.load('compiler_c')
@@ -29,6 +30,7 @@ def configure(ctx):
     ctx.check_python_module('numpy')
     ctx.check_numpy_version(minver=(1,3))
     ctx.get_numpy_includes()
+    ctx.check_tool('inplace', tooldir='tools')
 
     ctx.find_program('cython', var='CYTHON')
     ctx.check_cython_version(minver=(0,11,1))
